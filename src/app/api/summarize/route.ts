@@ -1,19 +1,36 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export const runtime = "nodejs"; 
+export const runtime = "nodejs";
 
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 
+interface SummarizeRequest {
+  transcript: string;
+  instruction?: string;
+}
+
+interface GroqChoice {
+  message: {
+    role: string;
+    content: string;
+  };
+}
+
+interface GroqResponse {
+  choices: GroqChoice[];
+}
+
 export async function POST(req: NextRequest) {
   try {
-    const { transcript, instruction } = await req.json();
+    const body: SummarizeRequest = await req.json();
 
-    if (!transcript || typeof transcript !== "string") {
-      return NextResponse.json({ error: "transcript is required" }, { status: 400 });
+    if (!body.transcript || typeof body.transcript !== "string") {
+      return NextResponse.json({ error: "Transcript is required" }, { status: 400 });
     }
 
     const model = process.env.GROQ_MODEL || "llama3-70b-8192";
     const apiKey = process.env.GROQ_API_KEY;
+
     if (!apiKey) {
       return NextResponse.json({ error: "GROQ_API_KEY not set" }, { status: 500 });
     }
@@ -29,16 +46,16 @@ Rules:
 `;
 
     const userPrompt = `
-Instruction: ${instruction || "Summarize clearly with key points, decisions, risks, and action items."}
+Instruction: ${body.instruction || "Summarize clearly with key points, decisions, risks, and action items."}
 
 Transcript:
-"""${transcript}"""
+"""${body.transcript}"""
 `;
 
     const resp = await fetch(GROQ_API_URL, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -56,11 +73,14 @@ Transcript:
       return NextResponse.json({ error: `Groq error: ${errText}` }, { status: 500 });
     }
 
-    const data = await resp.json();
-    const summary = data?.choices?.[0]?.message?.content ?? "";
+    const data: GroqResponse = await resp.json();
+    const summary: string = data?.choices?.[0]?.message?.content ?? "";
+
     return NextResponse.json({ summary });
-  } catch (e: any) {
-    return NextResponse.json({ error: e?.message || "Unknown error" }, { status: 500 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
+
 

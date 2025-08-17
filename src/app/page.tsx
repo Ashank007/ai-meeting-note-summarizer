@@ -1,19 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { useState, ChangeEvent } from "react";
 import styles from "./page.module.css";
 
+interface SummarizeRequest {
+  transcript: string;
+  instruction: string;
+}
+
+interface SendEmailRequest {
+  recipients: string[];
+  subject: string;
+  body: string;
+}
+
 export default function Home() {
-  const [transcript, setTranscript] = useState("");
-  const [instruction, setInstruction] = useState("");
-  const [summary, setSummary] = useState("");
-  const [loadingSummary, setLoadingSummary] = useState(false);
-  const [emails, setEmails] = useState("");
-  const [loadingEmail, setLoadingEmail] = useState(false);
+  const [transcript, setTranscript] = useState<string>("");
+  const [instruction, setInstruction] = useState<string>("");
+  const [summary, setSummary] = useState<string>("");
+  const [loadingSummary, setLoadingSummary] = useState<boolean>(false);
+  const [emails, setEmails] = useState<string>("");
+  const [loadingEmail, setLoadingEmail] = useState<boolean>(false);
 
   const spinner = <span className={styles.spinner} />;
 
-  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleFile(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
     const text = await file.text();
@@ -27,13 +38,14 @@ export default function Home() {
       const resp = await fetch("/api/summarize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ transcript, instruction }),
+        body: JSON.stringify({ transcript, instruction } as SummarizeRequest),
       });
-      const data = await resp.json();
+      const data: { summary?: string; error?: string } = await resp.json();
       if (!resp.ok) throw new Error(data.error || "Failed");
       setSummary(data.summary || "");
-    } catch (err: any) {
-      alert(err?.message || "Error generating summary");
+    } catch (err: unknown) {
+      if (err instanceof Error) alert(err.message);
+      else alert("Unknown error generating summary");
     } finally {
       setLoadingSummary(false);
     }
@@ -42,32 +54,27 @@ export default function Home() {
   async function sendEmail() {
     setLoadingEmail(true);
     try {
-      const recipients = emails
-        .split(",")
-        .map((e) => e.trim())
-        .filter(Boolean);
+      const recipients = emails.split(",").map((e) => e.trim()).filter(Boolean);
 
       if (!recipients.length || !summary) {
         alert("Recipients and summary are required!");
+        setLoadingEmail(false);
         return;
       }
 
       const resp = await fetch("/api/send-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          recipients,
-          subject: "Meeting Summary",
-          body: summary,
-        }),
+        body: JSON.stringify({ recipients, subject: "Meeting Summary", body: summary } as SendEmailRequest),
       });
 
-      const data = await resp.json();
+      const data: { error?: string } = await resp.json();
       if (!resp.ok) throw new Error(data.error || "Failed to send");
 
       alert("✅ Email sent!");
-    } catch (err: any) {
-      alert(err?.message || "Error sending email");
+    } catch (err: unknown) {
+      if (err instanceof Error) alert(err.message);
+      else alert("Unknown error sending email");
     } finally {
       setLoadingEmail(false);
     }

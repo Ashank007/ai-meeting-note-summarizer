@@ -1,16 +1,19 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { marked } from "marked";
 
-export async function POST(req: Request) {
-  try {
-    const { recipients, subject, body } = await req.json();
+interface SendEmailRequest {
+  recipients: string[];
+  subject: string;
+  body: string;
+}
 
-    if (!recipients?.length || !body) {
-      return NextResponse.json(
-        { error: "Recipients and summary are required" },
-        { status: 400 }
-      );
+export async function POST(req: NextRequest) {
+  try {
+    const body: SendEmailRequest = await req.json();
+
+    if (!body.recipients?.length || !body.body) {
+      return NextResponse.json({ error: "Recipients and body are required" }, { status: 400 });
     }
 
     const transporter = nodemailer.createTransport({
@@ -21,21 +24,20 @@ export async function POST(req: Request) {
       },
     });
 
-    // 👇 Convert markdown (##, *, etc.) into HTML
-    const htmlBody = marked.parse(body);
+   const htmlBody: string = marked.parse(body.body).toString();
 
-    const mailOptions = {
+    await transporter.sendMail({
       from: process.env.GMAIL_USER,
-      to: recipients,
-      subject: subject || "Meeting Summary",
-      html: htmlBody, // send HTML instead of plain text
-    };
+      to: body.recipients.join(", "),
+      subject: body.subject,
+      text: body.body,
+      html: htmlBody, 
+    });
 
-    await transporter.sendMail(mailOptions);
-
-    return NextResponse.json({ success: true });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ message: "Email sent" });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error sending email";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
