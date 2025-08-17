@@ -1,0 +1,139 @@
+/* Container */
+.container {
+  padding: 40px 20px;
+  max-width: 900px;
+  margin: 0 auto;
+  font-family: 'Inter', sans-serif;
+  background: #f9f9fb;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+}
+
+/* Heading */
+.heading {
+  text-align: center;
+  font-size: 2rem;
+  color: #111;
+  margin-bottom: 24px;
+  font-weight: 700;
+}
+
+/* Sections */
+.section {
+  margin-top: 20px;
+}
+
+/* Labels */
+.label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: #333;
+}
+
+/* Inputs */
+.input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 14px;
+  box-sizing: border-box;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background-color: #fff;
+  color: #111;
+}
+
+.input:focus {
+  border-color: #0070f3;
+  box-shadow: 0 0 6px rgba(0,112,243,0.3);
+  outline: none;
+}
+
+/* Textareas */
+.textarea {
+  width: 100%;
+  min-height: 150px; /* visible height */
+  padding: 12px 14px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 14px;
+  box-sizing: border-box;
+  background-color: #fff;
+  color: #111;
+  resize: vertical; /* allow resizing */
+  overflow-y: auto; /* scroll when content exceeds */
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.textarea:focus {
+  border-color: #0070f3;
+  box-shadow: 0 0 6px rgba(0,112,243,0.3);
+  outline: none;
+}
+
+/* Buttons */
+.button {
+  border: none;
+  border-radius: 8px;
+  background-color: #0070f3;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 16px;
+  font-size: 16px;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.button:hover:not(:disabled) {
+  background-color: #005bc1;
+  transform: translateY(-1px);
+}
+
+.button:disabled {
+  background-color: #aaa;
+  cursor: not-allowed;
+}
+
+/* Spinner */
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #fff;
+  border-top: 2px solid #333;
+  border-radius: 50%;
+  margin-right: 8px;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .container {
+    padding: 20px 12px;
+  }
+
+  .heading {
+    font-size: 1.6rem;
+  }
+
+  .button {
+    font-size: 14px;
+    padding: 10px 18px;
+  }
+
+  .textarea {
+    min-height: 120px;
+  }
+}
+
+
